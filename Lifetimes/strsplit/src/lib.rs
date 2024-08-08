@@ -1,13 +1,13 @@
 // #![warn(missing_debug_implementations, rust_2018_idioms, missing_docs)]
 
 #[derive(Debug)]
-pub struct StrSplit <'a>{
-    remainder: Option<&'a str>,
-    delimiter: &'a str
+pub struct StrSplit <'haystack, 'delimiter>{
+    remainder: Option<&'haystack str>,
+    delimiter: &'delimiter str
 }
 
-impl<'a> StrSplit<'a>{
-    pub fn new(haystack: &'a str, delimiter: &'a str) -> Self
+impl<'haystack, 'delimiter> StrSplit<'haystack, 'delimiter>{
+    pub fn new(haystack: &'haystack str, delimiter: &'delimiter str) -> Self
     {
         Self{
             remainder: Some(haystack),
@@ -16,8 +16,8 @@ impl<'a> StrSplit<'a>{
     }
 }
 
-impl<'a> Iterator for StrSplit<'a> {
-    type Item = &'a str;
+impl<'haystack, 'delimiter> Iterator for StrSplit<'haystack, 'delimiter> {
+    type Item = &'haystack str;
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(ref mut remainder) = self.remainder{
             if let Some(next_delim) = remainder.find(self.delimiter){
@@ -34,6 +34,12 @@ impl<'a> Iterator for StrSplit<'a> {
     }
 }
 
+fn until_char(s: &str, c: char) -> &str{
+    StrSplit::new(s,&format!("{}",c))
+    .next()
+    .expect("strplit always returns somthing")
+}
+
 #[test]
 fn it_works(){
     let haystack = "a b c d e";
@@ -46,4 +52,9 @@ fn tail(){
     let letters: Vec<_> = StrSplit::new(haystack, " ").collect();
 
     assert_eq!(letters, vec!["a", "b", "c", "d", ""]);
+}
+
+#[test]
+fn until_char_test(){
+    assert_eq!(until_char("hello world", 'o'), "hell");
 }
